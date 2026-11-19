@@ -183,12 +183,10 @@ fun SecretVaultScreen(
                     isBusy = false
                     busyMessage = ""
                     selectedIds.clear()
-                    val message = if (AppLanguage.getLanguage(context) == AppLanguage.ARABIC) {
-                        if (succeeded) "اكتملت عملية نقل الملفات في الخلفية."
-                        else "انتهت عملية النقل مع وجود ملفات لم تكتمل؛ النسخ الأصلية المحفوظة داخل الخزنة لم تُحذف."
+                    val message = if (succeeded) {
+                        "The background file transfer is complete."
                     } else {
-                        if (succeeded) "The background file transfer is complete."
-                        else "The transfer ended with incomplete items; remaining vault originals were kept."
+                        "The transfer ended with incomplete items; remaining vault originals were kept."
                     }
                     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                 }

@@ -49,6 +49,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.secure.cardvault.ui.CardGray
+import com.secure.cardvault.ui.CrispWhite
+import com.secure.cardvault.ui.DeepSurface
+import com.secure.cardvault.ui.MutedWhite
+import com.secure.cardvault.ui.PitchBlack
+import com.secure.cardvault.ui.BorderGray
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -429,10 +435,10 @@ fun SecretVaultScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF0D0D0D),
+        containerColor = PitchBlack,
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1A1A1A)),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DeepSurface),
                 title = {
                     val headerTitle = when {
                         selectedIds.isNotEmpty() -> AppLanguage.text(context, "${selectedIds.size} selected", "تم تحديد ${selectedIds.size}")
@@ -440,7 +446,7 @@ fun SecretVaultScreen(
                         currentTab == 3 && showSecretTrash -> AppLanguage.text(context, "Hidden Notes Trash", "محذوفات الملاحظات المخفية")
                         else -> AppLanguage.text(context, "Private Vault 🔒", "الخزنة الخاصة 🔒")
                     }
-                    Text(headerTitle, color = Color(0xFF69F0AE), fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(headerTitle, color = CrispWhite, fontWeight = FontWeight.Bold, maxLines = 1)
                 },
                 actions = {
                     if (selectedIds.isNotEmpty()) {
@@ -458,7 +464,7 @@ fun SecretVaultScreen(
                                 Icon(
                                     Icons.Default.SelectAll,
                                     contentDescription = if (allVisibleSelected) AppLanguage.text(context, "Deselect all visible", "إلغاء تحديد الكل") else AppLanguage.text(context, "Select all visible", "تحديد الكل"),
-                                    tint = Color.White
+                                    tint = CrispWhite
                                 )
                             }
                         }
@@ -473,11 +479,11 @@ fun SecretVaultScreen(
                                     Toast.makeText(context, AppLanguage.text(context, "Restored to vault ✅", "تمت الاستعادة إلى الخزنة ✅"), Toast.LENGTH_SHORT).show()
                                 }
                             }) {
-                                Icon(Icons.Default.Restore, contentDescription = AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = Color(0xFF69F0AE))
+                                Icon(Icons.Default.Restore, contentDescription = AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = CrispWhite)
                             }
                         } else {
                             IconButton(onClick = { showMoveFolderDialog = true }) {
-                                Icon(Icons.Default.DriveFileMove, contentDescription = AppLanguage.text(context, "Move to folder", "نقل إلى مجلد"), tint = Color(0xFFFFD54F))
+                                Icon(Icons.Default.DriveFileMove, contentDescription = AppLanguage.text(context, "Move to folder", "نقل إلى مجلد"), tint = CrispWhite)
                             }
                         }
                         IconButton(onClick = {
@@ -485,7 +491,7 @@ fun SecretVaultScreen(
                             onPickerStateChange(true)
                             launchRestorePicker()
                         }) {
-                            Icon(Icons.Default.Unarchive, contentDescription = AppLanguage.text(context, "Restore to device", "استعادة إلى الجهاز"), tint = Color(0xFF40C4FF))
+                            Icon(Icons.Default.Unarchive, contentDescription = AppLanguage.text(context, "Restore to device", "استعادة إلى الجهاز"), tint = MutedWhite)
                         }
                         IconButton(onClick = {
                             val selectedItems = vaultFiles.filter { it.id in selectedIds }
@@ -513,11 +519,11 @@ fun SecretVaultScreen(
                             Icon(
                                 if (currentTab == 4) Icons.Default.DeleteForever else Icons.Default.Delete,
                                 contentDescription = if (currentTab == 4) AppLanguage.text(context, "Delete permanently", "حذف نهائي") else AppLanguage.text(context, "Move to trash", "نقل إلى سلة المحذوفات"),
-                                tint = Color(0xFFFF5252)
+                                tint = MutedWhite
                             )
                         }
                         IconButton(onClick = { selectedIds.clear() }) {
-                            Icon(Icons.Default.Close, contentDescription = AppLanguage.text(context, "Clear selection", "إلغاء التحديد"), tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = AppLanguage.text(context, "Clear selection", "إلغاء التحديد"), tint = CrispWhite)
                         }
                     } else {
                         if (currentTab in 0..2 || currentTab == 4) {
@@ -528,7 +534,7 @@ fun SecretVaultScreen(
                                 Icon(
                                     Icons.Default.SelectAll,
                                     contentDescription = AppLanguage.text(context, "Select all", "تحديد الكل"),
-                                    tint = if (filteredFiles.isNotEmpty()) Color(0xFF69F0AE) else Color.Gray
+                                    tint = if (filteredFiles.isNotEmpty()) CrispWhite else MutedWhite
                                 )
                             }
                             IconButton(onClick = {
@@ -538,13 +544,13 @@ fun SecretVaultScreen(
                                 Icon(
                                     if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
                                     contentDescription = if (isGridView) AppLanguage.text(context, "List view", "عرض القائمة") else AppLanguage.text(context, "Grid view", "عرض الشبكة"),
-                                    tint = Color.White
+                                    tint = CrispWhite
                                 )
                             }
                         }
                         if (currentTab == 4 || (currentTab == 3 && showSecretTrash)) {
                             IconButton(onClick = { showEmptyTrashDialog = true }) {
-                                Icon(Icons.Default.DeleteForever, contentDescription = AppLanguage.text(context, "Empty trash", "إفراغ سلة المحذوفات"), tint = Color(0xFFFF5252))
+                                Icon(Icons.Default.DeleteForever, contentDescription = AppLanguage.text(context, "Empty trash", "إفراغ سلة المحذوفات"), tint = MutedWhite)
                             }
                         }
                         if (currentTab == 3) {
@@ -552,7 +558,7 @@ fun SecretVaultScreen(
                                 Icon(
                                     Icons.Default.DeleteSweep,
                                     contentDescription = AppLanguage.text(context, "Private notes trash", "محذوفات الملاحظات الخاصة"),
-                                    tint = if (showSecretTrash) Color(0xFFFF5252) else Color.White
+                                    tint = if (showSecretTrash) MutedWhite else CrispWhite
                                 )
                             }
                         }
@@ -569,14 +575,14 @@ fun SecretVaultScreen(
                             }
                             Toast.makeText(context, AppLanguage.text(context, "Sorted by: $label", "الترتيب حسب: $label"), Toast.LENGTH_SHORT).show()
                         }) {
-                            Icon(Icons.Default.Sort, contentDescription = AppLanguage.text(context, "Sort", "ترتيب"), tint = Color.White)
+                            Icon(Icons.Default.Sort, contentDescription = AppLanguage.text(context, "Sort", "ترتيب"), tint = CrispWhite)
                         }
                         if (currentTab != 3) {
                             IconButton(onClick = { currentTab = if (currentTab == 4) 0 else 4 }) {
                                 Icon(
                                     Icons.Default.AutoDelete,
                                     contentDescription = AppLanguage.text(context, "Vault trash", "محذوفات الخزنة"),
-                                    tint = if (currentTab == 4) Color(0xFFFF5252) else Color.Gray
+                                    tint = if (currentTab == 4) MutedWhite else MutedWhite
                                 )
                             }
                         }
@@ -584,14 +590,14 @@ fun SecretVaultScreen(
                             SecurityCrypto.lockVaultSession(context)
                             onExitVault()
                         }) {
-                            Icon(Icons.Default.Lock, contentDescription = AppLanguage.text(context, "Lock vault", "قفل الخزنة"), tint = Color(0xFFFF5252))
+                            Icon(Icons.Default.Lock, contentDescription = AppLanguage.text(context, "Lock vault", "قفل الخزنة"), tint = MutedWhite)
                         }
                     }
                 }
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Color(0xFF1A1A1A)) {
+            NavigationBar(containerColor = DeepSurface) {
                 NavigationBarItem(selected = currentTab == 0, onClick = { currentTab = 0 }, icon = { Icon(Icons.Default.PhotoLibrary, null) }, label = { Text(AppLanguage.text(context, "Photos", "الصور")) })
                 NavigationBarItem(selected = currentTab == 1, onClick = { currentTab = 1 }, icon = { Icon(Icons.Default.VideoLibrary, null) }, label = { Text(AppLanguage.text(context, "Videos", "الفيديوهات")) })
                 NavigationBarItem(selected = currentTab == 2, onClick = { currentTab = 2 }, icon = { Icon(Icons.Default.FolderShared, null) }, label = { Text(AppLanguage.text(context, "Documents", "المستندات")) })
@@ -601,8 +607,8 @@ fun SecretVaultScreen(
         floatingActionButton = {
             if (currentTab in 0..3 && !(currentTab == 3 && showSecretTrash)) {
                 FloatingActionButton(
-                    containerColor = Color(0xFF69F0AE),
-                    contentColor = Color.Black,
+                    containerColor = CrispWhite,
+                    contentColor = PitchBlack,
                     onClick = {
                         when (currentTab) {
                             0 -> { onPickerStateChange(true); safImportLauncher.launch(arrayOf("image/*")) }
@@ -622,21 +628,21 @@ fun SecretVaultScreen(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(AppLanguage.text(context, "Search inside vault...", "ابحث داخل الخزنة..."), color = Color.Gray) },
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
+                    placeholder = { Text(AppLanguage.text(context, "Search inside vault...", "ابحث داخل الخزنة..."), color = MutedWhite) },
+                    leadingIcon = { Icon(Icons.Default.Search, null, tint = MutedWhite) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = AppLanguage.text(context, "Clear", "مسح"), tint = Color.Gray)
+                                Icon(Icons.Default.Clear, contentDescription = AppLanguage.text(context, "Clear", "مسح"), tint = MutedWhite)
                             }
                         }
                     },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF69F0AE),
-                        unfocusedBorderColor = Color(0xFF2C2C2C),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedBorderColor = CrispWhite,
+                        unfocusedBorderColor = BorderGray,
+                        focusedTextColor = CrispWhite,
+                        unfocusedTextColor = CrispWhite
                     )
                 )
                 Spacer(Modifier.height(10.dp))
@@ -644,7 +650,7 @@ fun SecretVaultScreen(
                 if (StorageRepository.hasVaultStorageReadError()) {
                     Text(
                         AppLanguage.text(context, "Part of the vault storage could not be read safely. Some changes may be unavailable to protect your existing data.", "تعذّرت قراءة جزء من مساحة تخزين الخزنة بأمان. قد تتعذّر بعض التغييرات لحماية بياناتك الحالية."),
-                        color = Color(0xFFFF8A80),
+                        color = MutedWhite,
                         modifier = Modifier.padding(vertical = 8.dp),
                         fontSize = 13.sp
                     )
@@ -671,7 +677,7 @@ fun SecretVaultScreen(
                                         if (coverItem != null) {
                                             VaultFolderCoverIcon(item = coverItem)
                                         } else {
-                                            Icon(Icons.Default.Folder, null, tint = if (isSelected) Color(0xFF69F0AE) else Color.Gray)
+                                            Icon(Icons.Default.Folder, null, tint = if (isSelected) CrispWhite else MutedWhite)
                                         }
                                     }
                                 )
@@ -683,7 +689,7 @@ fun SecretVaultScreen(
                                             showRenameFolderDialog = true
                                         }
                                     ) {
-                                        Icon(Icons.Default.Edit, contentDescription = AppLanguage.text(context, "Rename folder", "إعادة تسمية المجلد"), tint = Color(0xFF69F0AE), modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Default.Edit, contentDescription = AppLanguage.text(context, "Rename folder", "إعادة تسمية المجلد"), tint = CrispWhite, modifier = Modifier.size(18.dp))
                                     }
                                     if (folder != (savedSubFolders.firstOrNull() ?: "General")) {
                                         IconButton(
@@ -701,7 +707,7 @@ fun SecretVaultScreen(
                                                 }
                                             }
                                         ) {
-                                            Icon(Icons.Default.Close, contentDescription = AppLanguage.text(context, "Delete folder", "حذف المجلد"), tint = Color(0xFFFF8A80), modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Close, contentDescription = AppLanguage.text(context, "Delete folder", "حذف المجلد"), tint = MutedWhite, modifier = Modifier.size(18.dp))
                                         }
                                     }
                                 }
@@ -709,7 +715,7 @@ fun SecretVaultScreen(
                         }
                         item {
                             IconButton(onClick = { showNewFolderDialog = true }) {
-                                Icon(Icons.Default.CreateNewFolder, AppLanguage.text(context, "New album / subfolder", "ألبوم / مجلد فرعي جديد"), tint = Color(0xFF69F0AE))
+                                Icon(Icons.Default.CreateNewFolder, AppLanguage.text(context, "New album / subfolder", "ألبوم / مجلد فرعي جديد"), tint = CrispWhite)
                             }
                         }
                     }
@@ -735,14 +741,14 @@ fun SecretVaultScreen(
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 if (showSecretTrash) AppLanguage.text(context, "Hidden notes trash is empty", "سلة محذوفات الملاحظات المخفية فارغة") else AppLanguage.text(context, "No hidden notes yet. Tap + to create one.", "لا توجد ملاحظات مخفية بعد. اضغط + لإنشاء واحدة."),
-                                color = Color.Gray
+                                color = MutedWhite
                             )
                         }
                     } else {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(displayedSecretNotes, key = { it.id }) { note ->
                                 Card(
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                                    colors = CardDefaults.cardColors(containerColor = DeepSurface),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -768,7 +774,7 @@ fun SecretVaultScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Text(
                                                     note.title.ifBlank { AppLanguage.text(context, "Untitled", "بلا عنوان") },
-                                                    color = Color.White,
+                                                    color = CrispWhite,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 16.sp,
                                                     maxLines = 1,
@@ -776,7 +782,7 @@ fun SecretVaultScreen(
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 if (note.isPinned && !showSecretTrash) {
-                                                    Icon(Icons.Default.PushPin, AppLanguage.text(context, "Pinned", "مثبّتة"), tint = Color(0xFFFFD54F), modifier = Modifier.size(18.dp))
+                                                    Icon(Icons.Default.PushPin, AppLanguage.text(context, "Pinned", "مثبّتة"), tint = CrispWhite, modifier = Modifier.size(18.dp))
                                                 }
                                             }
                                             Spacer(Modifier.height(4.dp))
@@ -789,10 +795,10 @@ fun SecretVaultScreen(
                                             )
                                             Spacer(Modifier.height(6.dp))
                                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                                Text(dateFormatter.format(Date(note.updatedAt)), color = Color.Gray, fontSize = 12.sp)
+                                                Text(dateFormatter.format(Date(note.updatedAt)), color = MutedWhite, fontSize = 12.sp)
                                                 if (showSecretTrash) {
                                                     val daysLeft = daysRemainingInTrash(note.trashedAt)
-                                                    Text(AppLanguage.text(context, "$daysLeft d left • Hold to restore", "متبقي $daysLeft يوم • اضغط مطولًا للاستعادة"), color = Color(0xFF69F0AE), fontSize = 12.sp)
+                                                    Text(AppLanguage.text(context, "$daysLeft d left • Hold to restore", "متبقي $daysLeft يوم • اضغط مطولًا للاستعادة"), color = CrispWhite, fontSize = 12.sp)
                                                 }
                                             }
                                         }
@@ -806,7 +812,7 @@ fun SecretVaultScreen(
                                                     Toast.makeText(context, AppLanguage.text(context, "Could not delete hidden note.", "تعذّر حذف الملاحظة المخفية."), Toast.LENGTH_LONG).show()
                                                 }
                                             }) {
-                                                Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = Color(0xFFFF5252))
+                                                Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = MutedWhite)
                                             }
                                         }
                                     }
@@ -820,7 +826,7 @@ fun SecretVaultScreen(
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 if (currentTab == 4) AppLanguage.text(context, "Vault trash is empty", "سلة محذوفات الخزنة فارغة") else AppLanguage.text(context, "No encrypted files in '$currentSubFolder' yet.", "لا توجد ملفات مشفّرة في '$currentSubFolder' بعد."),
-                                color = Color.Gray
+                                color = MutedWhite
                             )
                         }
                     } else {
@@ -836,7 +842,7 @@ fun SecretVaultScreen(
                                     val isSelected = item.id in selectedIds
                                     Card(
                                         shape = RoundedCornerShape(12.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C)),
+                                        colors = CardDefaults.cardColors(containerColor = CardGray),
                                         modifier = Modifier.fillMaxWidth().aspectRatio(1f).combinedClickable(
                                             onClick = {
                                                 if (selectedIds.isNotEmpty()) {
@@ -863,14 +869,14 @@ fun SecretVaultScreen(
                                                 VaultMediaType.DOCUMENT -> VaultDocumentThumbnail(item = item, modifier = Modifier.fillMaxSize())
                                             }
                                             if (isSelected) {
-                                                Icon(Icons.Default.CheckCircle, AppLanguage.text(context, "Selected", "محدد"), tint = Color(0xFF69F0AE),
+                                                Icon(Icons.Default.CheckCircle, AppLanguage.text(context, "Selected", "محدد"), tint = CrispWhite,
                                                     modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(26.dp))
                                             }
                                             Column(
                                                 modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                                                    .background(Color.Black.copy(alpha = 0.72f)).padding(horizontal = 8.dp, vertical = 5.dp)
+                                                    .background(PitchBlack.copy(alpha = 0.72f)).padding(horizontal = 8.dp, vertical = 5.dp)
                                             ) {
-                                                Text(item.originalName, color = Color.White, fontWeight = FontWeight.SemiBold,
+                                                Text(item.originalName, color = CrispWhite, fontWeight = FontWeight.SemiBold,
                                                     fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                             }
                                             Row(
@@ -888,7 +894,7 @@ fun SecretVaultScreen(
                                                             else Toast.makeText(context, AppLanguage.text(context, "Could not update vault.", "تعذّر تحديث الخزنة."), Toast.LENGTH_LONG).show()
                                                         }, modifier = Modifier.size(30.dp)) {
                                                             Icon(Icons.Default.Star, AppLanguage.text(context, "Album cover", "غلاف الألبوم"),
-                                                                tint = if (item.isAlbumCover) Color(0xFFFFD54F) else Color.White,
+                                                                tint = if (item.isAlbumCover) CrispWhite else CrispWhite,
                                                                 modifier = Modifier.size(18.dp))
                                                         }
                                                     }
@@ -900,7 +906,7 @@ fun SecretVaultScreen(
                                                             if (StorageRepository.saveVaultFiles(context, updated)) vaultFiles = updated
                                                             else Toast.makeText(context, AppLanguage.text(context, "Could not restore file.", "تعذّرت استعادة الملف."), Toast.LENGTH_LONG).show()
                                                         }, modifier = Modifier.size(30.dp)) {
-                                                            Icon(Icons.Default.Restore, AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = Color(0xFF40C4FF),
+                                                            Icon(Icons.Default.Restore, AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = MutedWhite,
                                                                 modifier = Modifier.size(18.dp))
                                                         }
                                                         IconButton(onClick = {
@@ -912,7 +918,7 @@ fun SecretVaultScreen(
                                                                 if (cleanupFailed) Toast.makeText(context, AppLanguage.text(context, "File removed from the vault index, but its stored copy could not be physically deleted.", "تمت إزالة الملف من فهرس الخزنة، لكن تعذّر حذف نسخته المخزنة فعليًا."), Toast.LENGTH_LONG).show()
                                                             } else Toast.makeText(context, AppLanguage.text(context, "Could not delete file.", "تعذّر حذف الملف."), Toast.LENGTH_LONG).show()
                                                         }, modifier = Modifier.size(30.dp)) {
-                                                            Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = Color(0xFFFF5252),
+                                                            Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = MutedWhite,
                                                                 modifier = Modifier.size(18.dp))
                                                         }
                                                     } else {
@@ -921,7 +927,7 @@ fun SecretVaultScreen(
                                                             onPickerStateChange(true)
                                                             launchRestorePicker()
                                                         }, modifier = Modifier.size(30.dp)) {
-                                                            Icon(Icons.Default.Unarchive, AppLanguage.text(context, "Restore to device", "استعادة إلى الجهاز"), tint = Color(0xFF40C4FF),
+                                                            Icon(Icons.Default.Unarchive, AppLanguage.text(context, "Restore to device", "استعادة إلى الجهاز"), tint = MutedWhite,
                                                                 modifier = Modifier.size(18.dp))
                                                         }
                                                     }
@@ -935,7 +941,7 @@ fun SecretVaultScreen(
                             items(filteredFiles, key = { it.id }) { item ->
                                 val isSelected = item.id in selectedIds
                                 Card(
-                                    colors = CardDefaults.cardColors(containerColor = if (isSelected) Color(0xFF263238) else Color(0xFF1C1C1C)),
+                                    colors = CardDefaults.cardColors(containerColor = if (isSelected) BorderGray else CardGray),
                                     modifier = Modifier.fillMaxWidth().combinedClickable(
                                         onClick = {
                                             if (selectedIds.isNotEmpty()) {
@@ -973,11 +979,11 @@ fun SecretVaultScreen(
                                             }
                                             Spacer(Modifier.width(12.dp))
                                             Column {
-                                                Text(item.originalName, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text(item.originalName, color = CrispWhite, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 val sizeKb = (item.sizeBytes / 1024L).coerceAtLeast(1L)
                                                 val dateStr = dateFormatter.format(Date(item.addedAt))
                                                 val trashInfo = if (item.isTrashed) AppLanguage.text(context, " • ${daysRemainingInTrash(item.trashedAt)}d left", " • متبقي ${daysRemainingInTrash(item.trashedAt)} يوم") else ""
-                                                Text("$sizeKb KB • $dateStr$trashInfo", color = Color.Gray, fontSize = 12.sp)
+                                                Text("$sizeKb KB • $dateStr$trashInfo", color = MutedWhite, fontSize = 12.sp)
                                             }
                                         }
                                         Row {
@@ -992,7 +998,7 @@ fun SecretVaultScreen(
                                                         Toast.makeText(context, AppLanguage.text(context, "Album cover set 🖼️", "تم تعيين غلاف الألبوم 🖼️"), Toast.LENGTH_SHORT).show()
                                                     } else Toast.makeText(context, AppLanguage.text(context, "Could not update album cover.", "تعذّر تحديث غلاف الألبوم."), Toast.LENGTH_LONG).show()
                                                 }) {
-                                                    Icon(Icons.Default.Star, AppLanguage.text(context, "Album cover", "غلاف الألبوم"), tint = if (item.isAlbumCover) Color(0xFFFFD54F) else Color(0xFFB0B0B0))
+                                                    Icon(Icons.Default.Star, AppLanguage.text(context, "Album cover", "غلاف الألبوم"), tint = if (item.isAlbumCover) CrispWhite else MutedWhite)
                                                 }
                                             }
                                             if (item.isTrashed) {
@@ -1002,7 +1008,7 @@ fun SecretVaultScreen(
                                                     }.toMutableList()
                                                     if (StorageRepository.saveVaultFiles(context, updated)) vaultFiles = updated
                                                     else Toast.makeText(context, AppLanguage.text(context, "Could not restore file.", "تعذّرت استعادة الملف."), Toast.LENGTH_LONG).show()
-                                                }) { Icon(Icons.Default.Restore, AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = Color(0xFF40C4FF)) }
+                                                }) { Icon(Icons.Default.Restore, AppLanguage.text(context, "Restore to vault", "استعادة إلى الخزنة"), tint = MutedWhite) }
                                                 IconButton(onClick = {
                                                     val updated = vaultFiles.filterNot { it.id == item.id }
                                                     if (StorageRepository.saveVaultFiles(context, updated)) {
@@ -1015,14 +1021,14 @@ fun SecretVaultScreen(
                                                             Toast.makeText(context, AppLanguage.text(context, "File permanently deleted.", "تم حذف الملف نهائيًا."), Toast.LENGTH_SHORT).show()
                                                         }
                                                     } else Toast.makeText(context, AppLanguage.text(context, "Could not delete file.", "تعذّر حذف الملف."), Toast.LENGTH_LONG).show()
-                                                }) { Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = Color(0xFFFF5252)) }
+                                                }) { Icon(Icons.Default.DeleteForever, AppLanguage.text(context, "Delete permanently", "حذف نهائي"), tint = MutedWhite) }
                                             } else {
                                                 // زر إلغاء الإخفاء واسترجاع الملف للهاتف
                                                 IconButton(onClick = {
                                                     pendingRestoreItems = listOf(item)
                                                     onPickerStateChange(true)
                                                     launchRestorePicker()
-                                                }) { Icon(Icons.Default.Unarchive, AppLanguage.text(context, "Unhide / Restore to device", "إلغاء الإخفاء / استعادة إلى الجهاز"), tint = Color(0xFF40C4FF)) }
+                                                }) { Icon(Icons.Default.Unarchive, AppLanguage.text(context, "Unhide / Restore to device", "إلغاء الإخفاء / استعادة إلى الجهاز"), tint = MutedWhite) }
                                             }
                                         }
                                     }
@@ -1036,19 +1042,19 @@ fun SecretVaultScreen(
 
             if (isBusy) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color(0xAA000000)).clickable(
+                    modifier = Modifier.fillMaxSize().background(PitchBlack.copy(alpha = 0.67f)).clickable(
                         interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}
                     ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))) {
+                    Card(colors = CardDefaults.cardColors(containerColor = DeepSurface)) {
                         Row(
                             modifier = Modifier.padding(20.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CircularProgressIndicator(color = Color(0xFF69F0AE), modifier = Modifier.size(28.dp))
+                            CircularProgressIndicator(color = CrispWhite, modifier = Modifier.size(28.dp))
                             Spacer(Modifier.width(16.dp))
-                            Text(busyMessage, color = Color.White, fontWeight = FontWeight.Medium)
+                            Text(busyMessage, color = CrispWhite, fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -1060,8 +1066,8 @@ fun SecretVaultScreen(
         var renamedFolder by remember(folderBeingRenamed) { mutableStateOf(folderBeingRenamed) }
         AlertDialog(
             onDismissRequest = { showRenameFolderDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = { Text(AppLanguage.text(context, "Rename folder", "إعادة تسمية المجلد"), color = Color.White) },
+            containerColor = DeepSurface,
+            title = { Text(AppLanguage.text(context, "Rename folder", "إعادة تسمية المجلد"), color = CrispWhite) },
             text = {
                 OutlinedTextField(
                     value = renamedFolder,
@@ -1110,7 +1116,7 @@ fun SecretVaultScreen(
                 }) { Text(AppLanguage.text(context, "Rename", "إعادة تسمية")) }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray) }
+                TextButton(onClick = { showRenameFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = MutedWhite) }
             }
         )
     }
@@ -1119,8 +1125,8 @@ fun SecretVaultScreen(
         var folderName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showNewFolderDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = { Text(AppLanguage.text(context, "Create Subfolder / Album", "إنشاء مجلد فرعي / ألبوم"), color = Color.White) },
+            containerColor = DeepSurface,
+            title = { Text(AppLanguage.text(context, "Create Subfolder / Album", "إنشاء مجلد فرعي / ألبوم"), color = CrispWhite) },
             text = {
                 OutlinedTextField(
                     value = folderName,
@@ -1152,7 +1158,7 @@ fun SecretVaultScreen(
                 }) { Text(AppLanguage.text(context, "Create", "إنشاء")) }
             },
             dismissButton = {
-                TextButton(onClick = { showNewFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray) }
+                TextButton(onClick = { showNewFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = MutedWhite) }
             }
         )
     }
@@ -1160,8 +1166,8 @@ fun SecretVaultScreen(
     if (showMoveFolderDialog) {
         AlertDialog(
             onDismissRequest = { showMoveFolderDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = { Text(AppLanguage.text(context, "Move ${selectedIds.size} file(s) to folder", "نقل ${selectedIds.size} ملفًا إلى مجلد"), color = Color.White) },
+            containerColor = DeepSurface,
+            title = { Text(AppLanguage.text(context, "Move ${selectedIds.size} file(s) to folder", "نقل ${selectedIds.size} ملفًا إلى مجلد"), color = CrispWhite) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     subFolders.forEach { targetFolder ->
@@ -1180,15 +1186,15 @@ fun SecretVaultScreen(
                                 showMoveFolderDialog = false
                             }
                         ) {
-                            Icon(Icons.Default.Folder, contentDescription = null, tint = Color(0xFF69F0AE))
+                            Icon(Icons.Default.Folder, contentDescription = null, tint = CrispWhite)
                             Spacer(Modifier.width(8.dp))
-                            Text(targetFolder, color = Color.White, modifier = Modifier.weight(1f))
+                            Text(targetFolder, color = CrispWhite, modifier = Modifier.weight(1f))
                         }
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showMoveFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray) }
+                TextButton(onClick = { showMoveFolderDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = MutedWhite) }
             }
         )
     }
@@ -1196,12 +1202,12 @@ fun SecretVaultScreen(
     if (showEmptyTrashDialog) {
         AlertDialog(
             onDismissRequest = { showEmptyTrashDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = { Text(AppLanguage.text(context, "Empty Trash Permanently?", "إفراغ سلة المحذوفات نهائيًا؟"), color = Color.White) },
+            containerColor = DeepSurface,
+            title = { Text(AppLanguage.text(context, "Empty Trash Permanently?", "إفراغ سلة المحذوفات نهائيًا؟"), color = CrispWhite) },
             text = { Text(AppLanguage.text(context, "All items in this trash view will be permanently erased.", "سيتم حذف جميع العناصر في سلة المحذوفات هذه نهائيًا."), color = Color.LightGray) },
             confirmButton = {
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MutedWhite),
                     onClick = {
                         if (currentTab == 3 && showSecretTrash) {
                             val updated = secretNotes.filterNot { it.isTrashed }.toMutableList()
@@ -1232,10 +1238,10 @@ fun SecretVaultScreen(
                         }
                         showEmptyTrashDialog = false
                     }
-                ) { Text(AppLanguage.text(context, "Delete All", "حذف الكل"), color = Color.White) }
+                ) { Text(AppLanguage.text(context, "Delete All", "حذف الكل"), color = CrispWhite) }
             },
             dismissButton = {
-                TextButton(onClick = { showEmptyTrashDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray) }
+                TextButton(onClick = { showEmptyTrashDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = MutedWhite) }
             }
         )
     }
@@ -1293,7 +1299,7 @@ private fun VaultFolderCoverIcon(item: VaultFileItem) {
             modifier = Modifier.size(22.dp).clip(CircleShape)
         )
     } else {
-        Icon(Icons.Default.Album, null, tint = Color(0xFFFFD54F), modifier = Modifier.size(18.dp))
+        Icon(Icons.Default.Album, null, tint = CrispWhite, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -1307,9 +1313,9 @@ private fun VaultPhotoThumbnail(item: VaultFileItem, modifier: Modifier = Modifi
         Image(bitmap = bitmap!!.asImageBitmap(), contentDescription = item.originalName,
             contentScale = ContentScale.Crop, modifier = modifier.clip(RoundedCornerShape(10.dp)))
     } else {
-        Box(modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF303030)),
+        Box(modifier.clip(RoundedCornerShape(10.dp)).background(CardGray),
             contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.Image, null, tint = Color(0xFF69F0AE), modifier = Modifier.size(38.dp))
+            Icon(Icons.Default.Image, null, tint = CrispWhite, modifier = Modifier.size(38.dp))
         }
     }
 }
@@ -1322,12 +1328,12 @@ private fun VaultVideoThumbnail(item: VaultFileItem, modifier: Modifier = Modifi
     }
     val bitmap = preview.first
     val duration = preview.second
-    Box(modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF303030))) {
+    Box(modifier.clip(RoundedCornerShape(10.dp)).background(CardGray)) {
         if (bitmap != null) {
             Image(bitmap.asImageBitmap(), contentDescription = item.originalName,
                 contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         }
-        Icon(Icons.Default.PlayCircleFilled, AppLanguage.text(context, "Play video", "تشغيل الفيديو"), tint = Color.White,
+        Icon(Icons.Default.PlayCircleFilled, AppLanguage.text(context, "Play video", "تشغيل الفيديو"), tint = CrispWhite,
             modifier = Modifier.align(Alignment.Center).size(32.dp))
         if (duration != null && duration > 0L) {
             val totalSeconds = duration / 1000L
@@ -1336,9 +1342,9 @@ private fun VaultVideoThumbnail(item: VaultFileItem, modifier: Modifier = Modifi
             val seconds = totalSeconds % 60L
             val durationText = if (hours > 0L) "%d:%02d:%02d".format(hours, minutes, seconds)
                 else "%02d:%02d".format(minutes, seconds)
-            Text(durationText, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+            Text(durationText, color = CrispWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(if (durationAtTop) Alignment.TopStart else Alignment.BottomEnd).padding(4.dp).clip(RoundedCornerShape(4.dp))
-                    .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 5.dp, vertical = 2.dp))
+                    .background(PitchBlack.copy(alpha = 0.8f)).padding(horizontal = 5.dp, vertical = 2.dp))
         }
     }
 }
@@ -1357,8 +1363,8 @@ private fun VaultDocumentThumbnail(item: VaultFileItem, modifier: Modifier = Mod
                 } catch (_: Exception) { null } finally { SecurityCrypto.deletePreviewIfTemporary(context, temp) }
             }
         }
-        Box(modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF303030)).padding(7.dp)) {
-            Text(snippet?.ifBlank { AppLanguage.text(context, "Empty text file", "ملف نصي فارغ") } ?: AppLanguage.text(context, "Text document", "مستند نصي"), color = Color(0xFFE0E0E0),
+        Box(modifier.clip(RoundedCornerShape(10.dp)).background(CardGray).padding(7.dp)) {
+            Text(snippet?.ifBlank { AppLanguage.text(context, "Empty text file", "ملف نصي فارغ") } ?: AppLanguage.text(context, "Text document", "مستند نصي"), color = CrispWhite,
                 fontSize = 9.sp, lineHeight = 12.sp, maxLines = 8, overflow = TextOverflow.Ellipsis)
         }
     } else {
@@ -1369,12 +1375,12 @@ private fun VaultDocumentThumbnail(item: VaultFileItem, modifier: Modifier = Mod
             Image(bitmap!!.asImageBitmap(), contentDescription = AppLanguage.text(context, "First page of ${item.originalName}", "الصفحة الأولى من ${item.originalName}"),
                 contentScale = ContentScale.Crop, modifier = modifier.clip(RoundedCornerShape(10.dp)))
         } else {
-            Box(modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF303030)),
+            Box(modifier.clip(RoundedCornerShape(10.dp)).background(CardGray),
                 contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Default.PictureAsPdf,
                     AppLanguage.text(context, "PDF document", "ملف PDF"),
-                    tint = Color(0xFF69F0AE),
+                    tint = CrispWhite,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -1561,7 +1567,7 @@ fun InAppMediaPagerViewer(items: List<VaultFileItem>, initialIndex: Int, onClose
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
+    Box(Modifier.fillMaxSize().background(PitchBlack)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
@@ -1642,27 +1648,27 @@ fun InAppMediaPagerViewer(items: List<VaultFileItem>, initialIndex: Int, onClose
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(16.dp)
-                                .background(Color(0x88000000), RoundedCornerShape(50))
+                                .background(PitchBlack.copy(alpha = 0.53f), RoundedCornerShape(50))
                         ) {
                             Icon(
                                 if (isFullscreenLandscape) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
                                 contentDescription = AppLanguage.text(context, "Toggle Fullscreen", "تبديل وضع ملء الشاشة"),
-                                tint = Color.White
+                                tint = CrispWhite
                             )
                         }
                     }
                 }
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF69F0AE))
+                    CircularProgressIndicator(color = CrispWhite)
                 }
             }
         }
         IconButton(
             onClick = { exitViewer() },
-            modifier = Modifier.align(Alignment.TopStart).padding(16.dp).background(Color(0x88000000), RoundedCornerShape(50))
+            modifier = Modifier.align(Alignment.TopStart).padding(16.dp).background(PitchBlack.copy(alpha = 0.53f), RoundedCornerShape(50))
         ) {
-            Icon(Icons.Default.Close, AppLanguage.text(context, "Close", "إغلاق"), tint = Color.White)
+            Icon(Icons.Default.Close, AppLanguage.text(context, "Close", "إغلاق"), tint = CrispWhite)
         }
     }
 }
@@ -1710,28 +1716,28 @@ fun InAppPdfViewer(item: VaultFileItem, onClose: () -> Unit) {
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFF121212))) {
+    Column(Modifier.fillMaxSize().background(PitchBlack)) {
         Row(
-            Modifier.fillMaxWidth().background(Color(0xFF1E1E1E)).padding(12.dp),
+            Modifier.fillMaxWidth().background(DeepSurface).padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(item.originalName, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f))
-            IconButton(onClick = onClose) { Icon(Icons.Default.Close, AppLanguage.text(context, "Close", "إغلاق"), tint = Color.White) }
+            Text(item.originalName, color = CrispWhite, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f))
+            IconButton(onClick = onClose) { Icon(Icons.Default.Close, AppLanguage.text(context, "Close", "إغلاق"), tint = CrispWhite) }
         }
         when {
             isDecrypting -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF69F0AE))
+                CircularProgressIndicator(color = CrispWhite)
             }
-            decryptedFile == null -> Text(AppLanguage.text(context, "Unable to decrypt this document.", "تعذّر فك تشفير هذا المستند."), color = Color.White, modifier = Modifier.padding(16.dp))
+            decryptedFile == null -> Text(AppLanguage.text(context, "Unable to decrypt this document.", "تعذّر فك تشفير هذا المستند."), color = CrispWhite, modifier = Modifier.padding(16.dp))
             isTextDocument && textContent != null -> SelectionContainer {
                 Text(
                     textContent!!,
-                    color = Color.White,
+                    color = CrispWhite,
                     modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
                 )
             }
-            isTextDocument -> Text(AppLanguage.text(context, "Unable to read this text document.", "تعذّرت قراءة هذا المستند النصي."), color = Color.White, modifier = Modifier.padding(16.dp))
+            isTextDocument -> Text(AppLanguage.text(context, "Unable to read this text document.", "تعذّرت قراءة هذا المستند النصي."), color = CrispWhite, modifier = Modifier.padding(16.dp))
             pageCount > 0 -> LazyColumn(
                 Modifier.fillMaxSize().padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -1740,7 +1746,7 @@ fun InAppPdfViewer(item: VaultFileItem, onClose: () -> Unit) {
                     PdfPageImage(file = decryptedFile!!, pageIndex = pageIndex, renderMutex = renderMutex)
                 }
             }
-            else -> Text(AppLanguage.text(context, "Unsupported document format. Import PDF or plain text files.", "تنسيق المستند غير مدعوم. استورد ملفات PDF أو ملفات نصية عادية."), color = Color.White, modifier = Modifier.padding(16.dp))
+            else -> Text(AppLanguage.text(context, "Unsupported document format. Import PDF or plain text files.", "تنسيق المستند غير مدعوم. استورد ملفات PDF أو ملفات نصية عادية."), color = CrispWhite, modifier = Modifier.padding(16.dp))
         }
     }
 }
@@ -1779,11 +1785,11 @@ private fun PdfPageImage(file: File, pageIndex: Int, renderMutex: Mutex) {
             bitmap = bitmap!!.asImageBitmap(),
             contentDescription = AppLanguage.text(context, "PDF page ${pageIndex + 1}", "صفحة PDF رقم ${pageIndex + 1}"),
             contentScale = ContentScale.FillWidth,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Color.White)
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(CrispWhite)
         )
     } else {
         Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFF69F0AE))
+            CircularProgressIndicator(color = CrispWhite)
         }
     }
 }

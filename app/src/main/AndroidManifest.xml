@@ -17,7 +17,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:label="Card Wallet"
-        android:supportsRtl="true"
+        android:supportsRtl="false"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
         <activity
@@ -30,7 +30,7 @@
         <activity-alias
             android:name=".MainActivityArabic"
             android:targetActivity=".MainActivity"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:label="Card Wallet">
             <intent-filter>
@@ -42,7 +42,7 @@
         <activity-alias
             android:name=".MainActivityEnglish"
             android:targetActivity=".MainActivity"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="true"
             android:label="Card Wallet">
             <intent-filter>

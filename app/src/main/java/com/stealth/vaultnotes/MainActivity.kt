@@ -15,6 +15,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
+import com.secure.cardvault.ui.CardWalletHomeScreen
+import com.secure.cardvault.ui.CardVaultTheme
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -56,7 +59,7 @@ class MainActivity : ComponentActivity() {
     private var originalBaseContext: Context? = null
     private var panicSensor: PanicSensor? = null
     private val isVaultOpenState = mutableStateOf(false)
-    private val appLanguageState = mutableStateOf(AppLanguage.ARABIC)
+    private val appLanguageState = mutableStateOf(AppLanguage.ENGLISH)
     private val pendingOpenNoteId = mutableStateOf<String?>(null)
     @Volatile private var isVaultPickerActive = false
     @Volatile private var isVaultUnlockInProgress = false
@@ -68,6 +71,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Match CardVault-Offline's black full-screen appearance without hiding system icons.
+        window.statusBarColor = android.graphics.Color.BLACK
+        window.navigationBarColor = android.graphics.Color.BLACK
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+
         appLanguageState.value = AppLanguage.getLanguage(this)
         // السماح بلقطات الشاشة في Debug أثناء الاختبار فقط.
         // تظل الحماية مفعّلة تلقائيًا في Release لمنع لقطات الشاشة ومعاينة التطبيقات الحديثة.
@@ -92,11 +104,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val appDirection = if (appLanguageState.value == AppLanguage.ARABIC) {
-                LayoutDirection.Rtl
-            } else {
-                LayoutDirection.Ltr
-            }
+            val appDirection = LayoutDirection.Ltr
             CompositionLocalProvider(LocalLayoutDirection provides appDirection) {
                 MaterialTheme(colorScheme = darkColorScheme()) {
                     StealthNotesApp(
@@ -201,8 +209,6 @@ fun StealthNotesApp(
     var showEmptyPublicTrashDialog by remember { mutableStateOf(false) }
     var activeNoteForEdit by remember { mutableStateOf<NoteItem?>(null) }
     var newNoteId by remember { mutableStateOf<String?>(null) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
-    var selectedLanguage by remember { mutableStateOf(AppLanguage.getLanguage(context)) }
 
     LaunchedEffect(openNoteId, publicNotes, activeNoteForEdit, isVaultOpen, isFirstRun) {
         val requestedId = openNoteId?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
@@ -319,12 +325,12 @@ fun StealthNotesApp(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.EditNote, contentDescription = null, tint = Color(0xFF69F0AE), modifier = Modifier.size(72.dp))
+                Icon(Icons.Default.CreditCard, contentDescription = null, tint = Color(0xFF69F0AE), modifier = Modifier.size(72.dp))
                 Spacer(Modifier.height(16.dp))
-                Text(AppLanguage.text(context, "Welcome to Notes Pro", "مرحبًا بك في Notes Pro"), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(AppLanguage.text(context, "Welcome to Card Wallet", "مرحبًا بك في Card Wallet"), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    AppLanguage.text(context, "To secure your workspace, set your secret passcode now (letters, numbers, or symbols). Type it in the Search bar anytime to open your private vault.", "لتأمين مساحة العمل، أنشئ رمز المرور السري الآن (حروف أو أرقام أو رموز). اكتب الرمز في شريط البحث في أي وقت لفتح خزنتك الخاصة."),
+                    AppLanguage.text(context, "Set a secret passcode for your private vault. Later, type it in the card search field and press Search to open the vault.", "أنشئ كلمة مرور سرية لخزنتك الخاصة. لاحقًا اكتبها في خانة البحث عن البطاقات واضغط بحث لفتح الخزنة."),
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
@@ -392,14 +398,103 @@ fun StealthNotesApp(
 
     // 2. لو الخزنة السرية مفتوحة
     if (isVaultOpen) {
-        SecretVaultScreen(
-            activity = activity,
-            printContext = printContext,
-            onExitVault = { onVaultStateChange(false) },
-            onPickerStateChange = onVaultPickerStateChange
-        )
+        CardVaultTheme {
+            SecretVaultScreen(
+                activity = activity,
+                printContext = printContext,
+                onExitVault = { onVaultStateChange(false) },
+                onPickerStateChange = onVaultPickerStateChange
+            )
+        }
         return
     }
+
+    // Public Card Wallet screen. The original vault passcode is submitted only
+    // when the user presses the normal Search action on this screen.
+    CardWalletHomeScreen(
+        onSecretSearch = { candidate ->
+            if (candidate.isNotEmpty()) {
+                scope.launch {
+                    onVaultUnlockProgressChange(true)
+                    val verification = withContext(Dispatchers.IO) {
+                        try {
+                            SecurityCrypto.verifyPasscode(context, candidate) to null
+                        } catch (e: Exception) {
+                            false to e
+                        }
+                    }
+                    if (!isVaultUnlockProgressActive() ||
+                        !activity.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
+                    ) {
+                        SecurityCrypto.lockVaultSession(context)
+                        onVaultUnlockProgressChange(false)
+                        return@launch
+                    }
+                    if (verification.first && SecurityCrypto.hasActiveTransfers()) {
+                        SecurityCrypto.lockVaultSession(context)
+                        onVaultUnlockProgressChange(false)
+                        Toast.makeText(
+                            context,
+                            AppLanguage.text(
+                                context,
+                                "A background file transfer is still running. Please wait until it finishes before reopening the vault.",
+                                "ما زالت عملية نقل ملفات تعمل في الخلفية. انتظر حتى تنتهي قبل فتح الخزنة مرة أخرى."
+                            ),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        focusManager.clearFocus()
+                    } else if (verification.first) {
+                        val recovery = withContext(Dispatchers.IO) {
+                            runCatching { VaultTransferManager.recoverPending(context) }
+                        }
+                        if (
+                            recovery.isSuccess &&
+                            isVaultUnlockProgressActive() &&
+                            activity.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
+                        ) {
+                            onVaultUnlockProgressChange(false)
+                            focusManager.clearFocus()
+                            onVaultStateChange(true)
+                        } else {
+                            SecurityCrypto.lockVaultSession(context)
+                            onVaultUnlockProgressChange(false)
+                            if (
+                                recovery.isFailure &&
+                                isVaultUnlockProgressActive() &&
+                                activity.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
+                            ) {
+                                Toast.makeText(
+                                    context,
+                                    AppLanguage.text(
+                                        context,
+                                        "The vault could not safely recover an interrupted file transfer. Your stored files were not intentionally removed.",
+                                        "تعذّر استرداد عملية نقل ملفات متوقفة بأمان. لم يتم حذف الملفات المخزنة عمدًا."
+                                    ),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                focusManager.clearFocus()
+                            }
+                        }
+                    } else {
+                        onVaultUnlockProgressChange(false)
+                        if (verification.second != null) {
+                            Toast.makeText(
+                                context,
+                                AppLanguage.text(
+                                    context,
+                                    "Unable to unlock the vault. Existing encrypted data has been preserved.",
+                                    "تعذّر فتح الخزنة. تم الحفاظ على البيانات المشفّرة الحالية."
+                                ),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        focusManager.clearFocus()
+                    }
+                }
+            }
+        }
+    )
+    return
 
     // 3. لو فاتح ملاحظة في المحرر المتقدم
     activeNoteForEdit?.let { note ->
@@ -468,12 +563,6 @@ fun StealthNotesApp(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {
-                        selectedLanguage = AppLanguage.getLanguage(context)
-                        showLanguageDialog = true
-                    }) {
-                        Icon(Icons.Default.Language, contentDescription = AppLanguage.text(context, "Change language", "تغيير اللغة"), tint = Color.White)
-                    }
                     if (showTrashBin && displayedNotes.isNotEmpty()) {
                         IconButton(onClick = { showEmptyPublicTrashDialog = true }) {
                             Icon(Icons.Default.DeleteForever, contentDescription = AppLanguage.text(context, "Empty trash", "إفراغ سلة المحذوفات"), tint = Color(0xFFFF5252))
@@ -736,56 +825,6 @@ fun StealthNotesApp(
                 }
             }
         }
-    }
-
-    if (showLanguageDialog) {
-        AlertDialog(
-            onDismissRequest = { showLanguageDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = {
-                Text(
-                    if (AppLanguage.getLanguage(context) == AppLanguage.ARABIC) AppLanguage.text(context, "لغة التطبيق", "لغة التطبيق") else AppLanguage.text(context, "App language", AppLanguage.text(context, "لغة التطبيق", "لغة التطبيق")),
-                    color = Color.White
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = selectedLanguage == AppLanguage.ARABIC,
-                            onClick = { selectedLanguage = AppLanguage.ARABIC }
-                        )
-                        Text("العربية", color = Color.White)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = selectedLanguage == AppLanguage.ENGLISH,
-                            onClick = { selectedLanguage = AppLanguage.ENGLISH }
-                        )
-                        Text("English", color = Color.White)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showLanguageDialog = false
-                    if (selectedLanguage != AppLanguage.getLanguage(context)) {
-                        // Persist and apply the in-app language immediately.
-                        // Launcher label is synchronized later in MainActivity.onStop(),
-                        // after the current launcher alias is no longer in the foreground.
-                        AppLanguage.setLanguage(context, selectedLanguage)
-                        onLanguageChanged(selectedLanguage)
-                    }
-                }) {
-                    Text(if (selectedLanguage == AppLanguage.ARABIC) "تطبيق" else AppLanguage.text(context, "Apply", "تطبيق"))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(if (AppLanguage.getLanguage(context) == AppLanguage.ARABIC) "إلغاء" else AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray)
-                }
-            }
-        )
     }
 
     if (showEmptyPublicTrashDialog) {

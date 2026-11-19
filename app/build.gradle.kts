@@ -1,57 +1,62 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
-// The same persistent keystore signs both debug (for continuity with existing
-// test installs) and release APKs. Release builds intentionally fail if secrets
-// or the keystore are missing; they must never fall back to an unsigned APK.
-val vaultKeystoreFile = System.getenv("VAULT_KEYSTORE_FILE")?.let { file(it) }
-val vaultStorePassword = System.getenv("VAULT_KEYSTORE_PASSWORD")
-val vaultKeyAlias = System.getenv("VAULT_KEY_ALIAS")
-val vaultKeyPassword = System.getenv("VAULT_KEY_PASSWORD")
-val hasStableDebugSigning = vaultKeystoreFile?.isFile == true &&
-    !vaultStorePassword.isNullOrBlank() &&
-    !vaultKeyAlias.isNullOrBlank() &&
-    !vaultKeyPassword.isNullOrBlank()
+val signingBase64 = System.getenv("KEYSTORE_BASE64")
+val signingStorePassword = System.getenv("KEYSTORE_PASSWORD")
+val signingKeyAlias = System.getenv("KEY_ALIAS")
+val signingKeyPassword = System.getenv("KEY_PASSWORD")
+
+val hasReleaseSigning = listOf(
+    signingBase64,
+    signingStorePassword,
+    signingKeyAlias,
+    signingKeyPassword
+).all { !it.isNullOrBlank() }
+
+val releaseKeystoreFile = layout.buildDirectory
+    .file("signing/cardwallet-release.jks")
+    .get()
+    .asFile
+
+if (hasReleaseSigning) {
+    releaseKeystoreFile.parentFile.mkdirs()
+    releaseKeystoreFile.writeBytes(Base64.getDecoder().decode(signingBase64))
+}
 
 android {
     namespace = "com.stealth.vaultnotes"
     compileSdk = 34
 
     defaultConfig {
-        // Separate application ID so this edition installs beside the original.
-        applicationId = "com.stealth.vaultsimple"
+        applicationId = "com.secure.cardwallet"
         minSdk = 26
         targetSdk = 34
-        // CI run numbers increase monotonically, allowing in-place APK updates.
-        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = 1
         versionName = "1.0.0"
     }
 
     signingConfigs {
-        create("stableDebug") {
-            storeFile = vaultKeystoreFile ?: rootProject.file("missing-vaultsimple-signing-key.jks")
-            storePassword = vaultStorePassword ?: ""
-            keyAlias = vaultKeyAlias ?: "vaultsimple"
-            keyPassword = vaultKeyPassword ?: ""
-        }
-        create("stableRelease") {
-            storeFile = vaultKeystoreFile ?: rootProject.file("missing-vaultsimple-signing-key.jks")
-            storePassword = vaultStorePassword ?: ""
-            keyAlias = vaultKeyAlias ?: "vaultsimple"
-            keyPassword = vaultKeyPassword ?: ""
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = releaseKeystoreFile
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
+            }
         }
     }
 
     buildTypes {
-        getByName("debug") {
-            if (hasStableDebugSigning) {
-                signingConfig = signingConfigs.getByName("stableDebug")
-            }
+        debug {
+            isMinifyEnabled = false
         }
         release {
-            signingConfig = signingConfigs.getByName("stableRelease")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -67,6 +72,9 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+        )
     }
 
     buildFeatures {
@@ -77,20 +85,37 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
-    implementation(composeBom)
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.activity:activity-compose:1.9.0")
+
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
+
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    implementation("net.zetetic:android-database-sqlcipher:4.5.4")
+    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }

@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
     private var originalBaseContext: Context? = null
     private var panicSensor: PanicSensor? = null
     private val isVaultOpenState = mutableStateOf(false)
-    private val appLanguageState = mutableStateOf(AppLanguage.ARABIC)
+    private val appLanguageState = mutableStateOf(AppLanguage.ENGLISH)
     private val pendingOpenNoteId = mutableStateOf<String?>(null)
     @Volatile private var isVaultPickerActive = false
     @Volatile private var isVaultUnlockInProgress = false
@@ -93,11 +93,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val appDirection = if (appLanguageState.value == AppLanguage.ARABIC) {
-                LayoutDirection.Rtl
-            } else {
-                LayoutDirection.Ltr
-            }
+            val appDirection = LayoutDirection.Ltr
             CompositionLocalProvider(LocalLayoutDirection provides appDirection) {
                 MaterialTheme(colorScheme = darkColorScheme()) {
                     StealthNotesApp(
@@ -202,8 +198,6 @@ fun StealthNotesApp(
     var showEmptyPublicTrashDialog by remember { mutableStateOf(false) }
     var activeNoteForEdit by remember { mutableStateOf<NoteItem?>(null) }
     var newNoteId by remember { mutableStateOf<String?>(null) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
-    var selectedLanguage by remember { mutableStateOf(AppLanguage.getLanguage(context)) }
 
     LaunchedEffect(openNoteId, publicNotes, activeNoteForEdit, isVaultOpen, isFirstRun) {
         val requestedId = openNoteId?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
@@ -556,12 +550,6 @@ fun StealthNotesApp(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {
-                        selectedLanguage = AppLanguage.getLanguage(context)
-                        showLanguageDialog = true
-                    }) {
-                        Icon(Icons.Default.Language, contentDescription = AppLanguage.text(context, "Change language", "تغيير اللغة"), tint = Color.White)
-                    }
                     if (showTrashBin && displayedNotes.isNotEmpty()) {
                         IconButton(onClick = { showEmptyPublicTrashDialog = true }) {
                             Icon(Icons.Default.DeleteForever, contentDescription = AppLanguage.text(context, "Empty trash", "إفراغ سلة المحذوفات"), tint = Color(0xFFFF5252))
@@ -824,56 +812,6 @@ fun StealthNotesApp(
                 }
             }
         }
-    }
-
-    if (showLanguageDialog) {
-        AlertDialog(
-            onDismissRequest = { showLanguageDialog = false },
-            containerColor = Color(0xFF1E1E1E),
-            title = {
-                Text(
-                    if (AppLanguage.getLanguage(context) == AppLanguage.ARABIC) AppLanguage.text(context, "لغة التطبيق", "لغة التطبيق") else AppLanguage.text(context, "App language", AppLanguage.text(context, "لغة التطبيق", "لغة التطبيق")),
-                    color = Color.White
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = selectedLanguage == AppLanguage.ARABIC,
-                            onClick = { selectedLanguage = AppLanguage.ARABIC }
-                        )
-                        Text("العربية", color = Color.White)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = selectedLanguage == AppLanguage.ENGLISH,
-                            onClick = { selectedLanguage = AppLanguage.ENGLISH }
-                        )
-                        Text("English", color = Color.White)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showLanguageDialog = false
-                    if (selectedLanguage != AppLanguage.getLanguage(context)) {
-                        // Persist and apply the in-app language immediately.
-                        // Launcher label is synchronized later in MainActivity.onStop(),
-                        // after the current launcher alias is no longer in the foreground.
-                        AppLanguage.setLanguage(context, selectedLanguage)
-                        onLanguageChanged(selectedLanguage)
-                    }
-                }) {
-                    Text(if (selectedLanguage == AppLanguage.ARABIC) "تطبيق" else AppLanguage.text(context, "Apply", "تطبيق"))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(if (AppLanguage.getLanguage(context) == AppLanguage.ARABIC) "إلغاء" else AppLanguage.text(context, "Cancel", "إلغاء"), color = Color.Gray)
-                }
-            }
-        )
     }
 
     if (showEmptyPublicTrashDialog) {

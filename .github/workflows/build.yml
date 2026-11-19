@@ -1,5 +1,6 @@
 name: Build Card Wallet APK
 
+# Trigger a fresh build after release-signing secrets are configured.
 on:
   push:
     branches: ["**"]

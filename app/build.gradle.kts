@@ -1,7 +1,31 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+}
+
+val signingBase64 = System.getenv("KEYSTORE_BASE64")
+val signingStorePassword = System.getenv("KEYSTORE_PASSWORD")
+val signingKeyAlias = System.getenv("KEY_ALIAS")
+val signingKeyPassword = System.getenv("KEY_PASSWORD")
+
+val hasReleaseSigning = listOf(
+    signingBase64,
+    signingStorePassword,
+    signingKeyAlias,
+    signingKeyPassword
+).all { !it.isNullOrBlank() }
+
+val releaseKeystoreFile = layout.buildDirectory
+    .file("signing/cardwallet-release.jks")
+    .get()
+    .asFile
+
+if (hasReleaseSigning) {
+    releaseKeystoreFile.parentFile.mkdirs()
+    releaseKeystoreFile.writeBytes(Base64.getDecoder().decode(signingBase64))
 }
 
 android {
@@ -16,11 +40,23 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = releaseKeystoreFile
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

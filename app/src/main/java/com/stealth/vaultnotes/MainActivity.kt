@@ -15,6 +15,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
 import com.secure.cardvault.ui.CardWalletHomeScreen
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -69,6 +70,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Match CardVault-Offline's black full-screen appearance without hiding system icons.
+        window.statusBarColor = android.graphics.Color.BLACK
+        window.navigationBarColor = android.graphics.Color.BLACK
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+
         appLanguageState.value = AppLanguage.getLanguage(this)
         // السماح بلقطات الشاشة في Debug أثناء الاختبار فقط.
         // تظل الحماية مفعّلة تلقائيًا في Release لمنع لقطات الشاشة ومعاينة التطبيقات الحديثة.

@@ -17,6 +17,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import com.secure.cardvault.ui.CardWalletHomeScreen
+import com.secure.cardvault.ui.CardVaultTheme
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -397,12 +398,14 @@ fun StealthNotesApp(
 
     // 2. لو الخزنة السرية مفتوحة
     if (isVaultOpen) {
-        SecretVaultScreen(
-            activity = activity,
-            printContext = printContext,
-            onExitVault = { onVaultStateChange(false) },
-            onPickerStateChange = onVaultPickerStateChange
-        )
+        CardVaultTheme {
+            SecretVaultScreen(
+                activity = activity,
+                printContext = printContext,
+                onExitVault = { onVaultStateChange(false) },
+                onPickerStateChange = onVaultPickerStateChange
+            )
+        }
         return
     }
 

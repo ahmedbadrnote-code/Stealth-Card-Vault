@@ -596,7 +596,7 @@ fun SecretVaultScreen(
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = DeepSurface) {
+            NavigationBar(containerColor = DeepSurface, tonalElevation = 0.dp) {
                 NavigationBarItem(selected = currentTab == 0, onClick = { currentTab = 0 }, icon = { Icon(Icons.Default.PhotoLibrary, null) }, label = { Text(AppLanguage.text(context, "Photos", "الصور")) })
                 NavigationBarItem(selected = currentTab == 1, onClick = { currentTab = 1 }, icon = { Icon(Icons.Default.VideoLibrary, null) }, label = { Text(AppLanguage.text(context, "Videos", "الفيديوهات")) })
                 NavigationBarItem(selected = currentTab == 2, onClick = { currentTab = 2 }, icon = { Icon(Icons.Default.FolderShared, null) }, label = { Text(AppLanguage.text(context, "Documents", "المستندات")) })

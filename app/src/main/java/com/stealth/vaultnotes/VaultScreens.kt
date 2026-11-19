@@ -48,7 +48,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import com.secure.cardvault.ui.CardGray
 import com.secure.cardvault.ui.CrispWhite
 import com.secure.cardvault.ui.DeepSurface
@@ -788,7 +787,7 @@ fun SecretVaultScreen(
                                             Spacer(Modifier.height(4.dp))
                                             Text(
                                                 note.plainTextPreview.ifBlank { AppLanguage.text(context, "Empty note...", "ملاحظة فارغة...") },
-                                                color = Color.LightGray,
+                                                color = MutedWhite,
                                                 maxLines = 2,
                                                 overflow = TextOverflow.Ellipsis,
                                                 fontSize = 14.sp
@@ -1207,7 +1206,7 @@ fun SecretVaultScreen(
             text = { Text(AppLanguage.text(context, "All items in this trash view will be permanently erased.", "سيتم حذف جميع العناصر في سلة المحذوفات هذه نهائيًا."), color = Color.LightGray) },
             confirmButton = {
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = MutedWhite),
+                    colors = ButtonDefaults.buttonColors(containerColor = CrispWhite),
                     onClick = {
                         if (currentTab == 3 && showSecretTrash) {
                             val updated = secretNotes.filterNot { it.isTrashed }.toMutableList()
@@ -1238,7 +1237,7 @@ fun SecretVaultScreen(
                         }
                         showEmptyTrashDialog = false
                     }
-                ) { Text(AppLanguage.text(context, "Delete All", "حذف الكل"), color = CrispWhite) }
+                ) { Text(AppLanguage.text(context, "Delete All", "حذف الكل"), color = PitchBlack) }
             },
             dismissButton = {
                 TextButton(onClick = { showEmptyTrashDialog = false }) { Text(AppLanguage.text(context, "Cancel", "إلغاء"), color = MutedWhite) }

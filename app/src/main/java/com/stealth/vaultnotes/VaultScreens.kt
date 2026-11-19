@@ -1203,7 +1203,7 @@ fun SecretVaultScreen(
             onDismissRequest = { showEmptyTrashDialog = false },
             containerColor = DeepSurface,
             title = { Text(AppLanguage.text(context, "Empty Trash Permanently?", "إفراغ سلة المحذوفات نهائيًا؟"), color = CrispWhite) },
-            text = { Text(AppLanguage.text(context, "All items in this trash view will be permanently erased.", "سيتم حذف جميع العناصر في سلة المحذوفات هذه نهائيًا."), color = Color.LightGray) },
+            text = { Text(AppLanguage.text(context, "All items in this trash view will be permanently erased.", "سيتم حذف جميع العناصر في سلة المحذوفات هذه نهائيًا."), color = MutedWhite) },
             confirmButton = {
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = CrispWhite),

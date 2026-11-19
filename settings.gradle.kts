@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "StealthVaultNotes"
+rootProject.name = "CardWallet"
 include(":app")

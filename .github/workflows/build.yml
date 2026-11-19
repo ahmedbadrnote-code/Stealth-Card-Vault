@@ -58,7 +58,7 @@ jobs:
           retention-days: 30
 
       - name: Upload signed Release APK
-        if: ${{ secrets.KEYSTORE_BASE64 != '' && secrets.KEYSTORE_PASSWORD != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' }}
+        if: ${{ env.KEYSTORE_BASE64 != '' && env.KEYSTORE_PASSWORD != '' && env.KEY_ALIAS != '' && env.KEY_PASSWORD != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: Card-Wallet-Signed-Release-APK

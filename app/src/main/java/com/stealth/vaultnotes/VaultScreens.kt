@@ -69,6 +69,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -1551,7 +1553,29 @@ fun InAppMediaPagerViewer(items: List<VaultFileItem>, initialIndex: Int, onClose
     val context = LocalContext.current
     val activity = context as? Activity
     var isFullscreenLandscape by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { items.size })
+    val pagerState = rememberPagerState(
+        initialPage = initialIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0)),
+        pageCount = { items.size }
+    )
+    val currentItem = items.getOrNull(pagerState.currentPage)
+    val activePreviewState = remember { mutableStateOf<File?>(null) }
+    var decryptedFile by remember { mutableStateOf<File?>(null) }
+    var decryptedItemId by remember { mutableStateOf<String?>(null) }
+
+    // One decoder/player is shared by the whole viewer, never one per Pager page.
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context)
+            .setSeekBackIncrementMs(10_000L)
+            .setSeekForwardIncrementMs(10_000L)
+            .build()
+    }
+    val playerView = remember(context) {
+        PlayerView(context).apply {
+            useController = true
+            setShowFastForwardButton(true)
+            setShowRewindButton(true)
+        }
+    }
 
     fun exitViewer() {
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -1566,100 +1590,148 @@ fun InAppMediaPagerViewer(items: List<VaultFileItem>, initialIndex: Int, onClose
         }
     }
 
+    // Decrypt only the selected page. On every page change, detach and fully
+    // release the previous media item before deleting its plaintext preview.
+    LaunchedEffect(currentItem?.id) {
+        playerView.player = null
+        runCatching { exoPlayer.playWhenReady = false }
+        runCatching { exoPlayer.pause() }
+        runCatching { exoPlayer.stop() }
+        runCatching { exoPlayer.clearMediaItems() }
+
+        val previousPreview = activePreviewState.value
+        activePreviewState.value = null
+        decryptedFile = null
+        decryptedItemId = null
+        SecurityCrypto.deletePreviewIfTemporary(context, previousPreview)
+
+        val item = currentItem ?: return@LaunchedEffect
+        val preview = decryptViewerPreview(context, item) ?: return@LaunchedEffect
+
+        try {
+            // A fast swipe may cancel the effect just after the blocking decrypt returns.
+            currentCoroutineContext().ensureActive()
+            activePreviewState.value = preview
+            decryptedFile = preview
+            decryptedItemId = item.id
+
+            if (item.mediaType == VaultMediaType.VIDEO) {
+                exoPlayer.setMediaItem(MediaItem.fromUri(Uri.fromFile(preview)))
+                exoPlayer.prepare()
+                exoPlayer.play()
+            }
+        } catch (cancelled: CancellationException) {
+            SecurityCrypto.deletePreviewIfTemporary(context, preview)
+            throw cancelled
+        }
+    }
+
+    val bitmap by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = decryptedItemId,
+        key2 = decryptedFile
+    ) {
+        val file = decryptedFile
+        value = if (currentItem?.mediaType == VaultMediaType.PHOTO &&
+            decryptedItemId == currentItem.id && file != null
+        ) {
+            withContext(Dispatchers.IO) { decodeExifOrientedBitmap(file, 2048) }
+        } else {
+            null
+        }
+    }
+
+    // Compose BOM 2024.06 does not expose AndroidView(onRelease), so detach the
+    // single PlayerView explicitly when its video page leaves composition.
+    DisposableEffect(playerView, decryptedItemId) {
+        if (currentItem?.mediaType == VaultMediaType.VIDEO &&
+            decryptedItemId == currentItem.id && decryptedFile != null
+        ) {
+            playerView.player = exoPlayer
+        }
+        onDispose {
+            if (playerView.player === exoPlayer) playerView.player = null
+        }
+    }
+
+    DisposableEffect(exoPlayer, playerView) {
+        onDispose {
+            playerView.player = null
+            runCatching { exoPlayer.playWhenReady = false }
+            runCatching { exoPlayer.stop() }
+            runCatching { exoPlayer.clearMediaItems() }
+            exoPlayer.release()
+            // Release the decoder before removing the last decrypted preview.
+            SecurityCrypto.deletePreviewIfTemporary(context, activePreviewState.value)
+            activePreviewState.value = null
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(PitchBlack)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            val item = items[page]
-            val isCurrentPage = pagerState.currentPage == page
-            val decryptedFile by produceState<File?>(initialValue = null, key1 = item.id) {
-                value = decryptViewerPreview(context, item)
-            }
+            if (page == pagerState.currentPage) {
+                val item = currentItem
+                val isLoaded = item != null && decryptedItemId == item.id && decryptedFile != null
 
-            DisposableEffect(item.id, decryptedFile) {
-                // Capture the file for this effect instance. Reading the delegated state
-                // from onDispose can resolve to a newer preview and delete it prematurely.
-                val fileToDelete = decryptedFile
-                onDispose { SecurityCrypto.deletePreviewIfTemporary(context, fileToDelete) }
-            }
-
-            if (decryptedFile != null) {
-                if (item.mediaType == VaultMediaType.PHOTO) {
-                    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = decryptedFile!!.absolutePath) {
-                        value = withContext(Dispatchers.IO) {
-                            decodeExifOrientedBitmap(decryptedFile!!, 2048)
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
+                when {
+                    !isLoaded -> Box(
+                        Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap!!.asImageBitmap(),
-                                contentDescription = item.originalName,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                        CircularProgressIndicator(color = CrispWhite)
                     }
-                } else if (item.mediaType == VaultMediaType.VIDEO) {
-                    val exoPlayer = remember(decryptedFile!!.absolutePath) {
-                        ExoPlayer.Builder(context)
-                            .setSeekBackIncrementMs(10_000L)
-                            .setSeekForwardIncrementMs(10_000L)
-                            .build()
-                            .apply {
-                                setMediaItem(MediaItem.fromUri(Uri.fromFile(decryptedFile!!)))
-                                prepare()
-                            }
-                    }
-                    LaunchedEffect(isCurrentPage, exoPlayer) {
-                        if (isCurrentPage) exoPlayer.play() else exoPlayer.pause()
-                    }
-                    DisposableEffect(exoPlayer) {
-                        onDispose { exoPlayer.release() }
-                    }
-                    Box(Modifier.fillMaxSize()) {
-                        AndroidView(
+
+                    item?.mediaType == VaultMediaType.PHOTO -> {
+                        Box(
                             modifier = Modifier.fillMaxSize(),
-                            factory = { ctx ->
-                                PlayerView(ctx).apply {
-                                    player = exoPlayer
-                                    useController = true
-                                    setShowFastForwardButton(true)
-                                    setShowRewindButton(true)
-                                }
-                            }
-                        )
-                        // زر ملء الشاشة وتدوير العرض للفيديو
-                        IconButton(
-                            onClick = {
-                                isFullscreenLandscape = !isFullscreenLandscape
-                                activity?.requestedOrientation = if (isFullscreenLandscape) {
-                                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                                } else {
-                                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                                }
-                            },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(16.dp)
-                                .background(PitchBlack.copy(alpha = 0.53f), RoundedCornerShape(50))
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                if (isFullscreenLandscape) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
-                                contentDescription = AppLanguage.text(context, "Toggle Fullscreen", "تبديل وضع ملء الشاشة"),
-                                tint = CrispWhite
-                            )
+                            if (bitmap != null) {
+                                Image(
+                                    bitmap = bitmap!!.asImageBitmap(),
+                                    contentDescription = item.originalName,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                CircularProgressIndicator(color = CrispWhite)
+                            }
                         }
                     }
-                }
-            } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = CrispWhite)
+
+                    item?.mediaType == VaultMediaType.VIDEO -> {
+                        Box(Modifier.fillMaxSize()) {
+                            AndroidView(
+                                modifier = Modifier.fillMaxSize(),
+                                factory = { playerView },
+                                update = { it.player = exoPlayer }
+                            )
+                            // زر ملء الشاشة وتدوير العرض للفيديو
+                            IconButton(
+                                onClick = {
+                                    isFullscreenLandscape = !isFullscreenLandscape
+                                    activity?.requestedOrientation = if (isFullscreenLandscape) {
+                                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                                    } else {
+                                        ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp)
+                                    .background(PitchBlack.copy(alpha = 0.53f), RoundedCornerShape(50))
+                            ) {
+                                Icon(
+                                    if (isFullscreenLandscape) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
+                                    contentDescription = AppLanguage.text(context, "Toggle Fullscreen", "تبديل وضع ملء الشاشة"),
+                                    tint = CrispWhite
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
